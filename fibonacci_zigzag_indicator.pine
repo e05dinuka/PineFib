@@ -48,12 +48,16 @@ direction = ta.barssince(not (hr > lr)) >= Backstep ? -1 : 1
 
 var float z_price = low
 var int z_time = time
+var float z0_price = low
+var int z0_time = time
 var float z1_price = low
 var int z1_time = time
 var float z2_price = high
 var int z2_time = time
 
 if ta.change(direction)
+    z0_price := z1_price
+    z0_time := z1_time
     z1_price := z2_price
     z1_time := z2_time
     z2_price := z_price
@@ -80,8 +84,9 @@ if direction < 0
         z_time := time
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
-P0 = math.min(z1_price, z2_price)
-P1 = math.max(z1_price, z2_price)
+// Using z0 and z1 (previous two pivots, not the most recent two)
+P0 = math.min(z0_price, z1_price)
+P1 = math.max(z0_price, z1_price)
 
 R = P1 - P0
 barsSpan = math.max(5, math.min(250, 500))

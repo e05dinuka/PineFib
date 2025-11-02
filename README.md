@@ -10,8 +10,8 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - Configurable parameters: Depth, Deviation, Backstep
 
 ### Fibonacci Levels
-- Draws Fibonacci levels based on the most recent two ZigZag pivot points
-- P0 (0%) and P1 (100%) are automatically set from the last swing
+- Draws Fibonacci levels based on the **previous** two ZigZag pivot points (z0 and z1)
+- P0 (0%) and P1 (100%) are automatically set from the completed swing (not the currently forming one)
 - Supports all φ-based levels including:
   - Retracements: 23.6%, 38.2%, 50%, 61.8%, 78.6%, 88.6%
   - Extensions: 123.6%, 127.2%, 138.2%, 161.8%, 261.8%, 361.8%, 423.6%
@@ -37,8 +37,8 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 
 1. **ZigZag Detection**: The indicator continuously monitors price swings using the embedded ZigZag algorithm
 2. **Pivot Identification**: When a new swing is confirmed, it identifies the pattern type (HH, HL, LH, LL)
-3. **Fibonacci Drawing**: Fibonacci levels are drawn between the last two confirmed pivot points (z1 and z2)
-4. **Dynamic Updates**: As new swings form, the Fibonacci levels automatically adjust
+3. **Fibonacci Drawing**: Fibonacci levels are drawn between the **previous** two confirmed pivot points (z0 and z1), not the most recent swing
+4. **Dynamic Updates**: As new swings form, the Fibonacci levels shift to the previous completed swing
 
 ## Differences from Original
 
