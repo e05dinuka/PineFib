@@ -141,13 +141,16 @@ if showZigZagPoints and ta.change(direction)
     else
         pointType := z2_price > lastPivot ? "HH" : "LH"
 
+    // Position label above highs (HH, LH) and below lows (LL, HL)
+    labelStyle = direction[1] > 0 ? label.style_label_down : label.style_label_up
+
     pivotLabel := label.new(
          bar_index[1], z2_price[1],
          pointType,
          xloc.bar_index,
          yloc.price,
          color.new(direction[1] < 0 ? color.red : color.lime, 20),
-         label.style_label_up,
+         labelStyle,
          color.new(direction[1] < 0 ? color.red : color.lime, 0),
          size.small
      )
