@@ -48,11 +48,12 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - `Label Size` (default: 1-Tiny) - Size of Fibonacci level labels (1-5)
 
 **Pivot Point Styling:**
-- `Bull Pivot Color` (default: lime) - Color for bullish pivots (HH, LH)
-- `Bear Pivot Color` (default: red) - Color for bearish pivots (LL, HL)
-- `Pivot Label Transparency` (default: 0) - Text transparency for pivot labels (0-100)
+- `Bull Pivot Color` (default: lime) - Background color for bullish pivots (HH, LH)
+- `Bear Pivot Color` (default: red) - Background color for bearish pivots (LL, HL)
+- `Pivot Label Transparency` (default: 0) - Text transparency for white pivot labels (0-100)
 - `Pivot Background Transparency` (default: 20) - Background transparency for pivot labels (0-100)
 - `Pivot Label Size` (default: 2-Small) - Size of pivot labels (1-5)
+- Note: Pivot label text is always white
 
 ## How It Works
 

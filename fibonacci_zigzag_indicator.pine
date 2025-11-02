@@ -214,7 +214,7 @@ if showZigZagPoints
              yloc.price,
              color.new(pivotColor0, pivotBgTransparency),
              labelStyle0,
-             color.new(pivotColor0, pivotLabelTransparency),
+             color.new(color.white, pivotLabelTransparency),
              pivotLabelSize
          )
 
@@ -231,6 +231,6 @@ if showZigZagPoints
              yloc.price,
              color.new(pivotColor1, pivotBgTransparency),
              labelStyle1,
-             color.new(pivotColor1, pivotLabelTransparency),
+             color.new(color.white, pivotLabelTransparency),
              pivotLabelSize
          )
