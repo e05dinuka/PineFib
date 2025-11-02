@@ -80,40 +80,53 @@ direction = ta.barssince(not (hr > lr)) >= Backstep ? -1 : 1
 
 var float z_price = low
 var int z_time = time
+var int z_bar = bar_index
 var float z0_price = low
 var int z0_time = time
+var int z0_bar = bar_index
 var float z1_price = low
 var int z1_time = time
+var int z1_bar = bar_index
 var float z2_price = high
 var int z2_time = time
+var int z2_bar = bar_index
 
 if ta.change(direction)
     z0_price := z1_price
     z0_time := z1_time
+    z0_bar := z1_bar
     z1_price := z2_price
     z1_time := z2_time
+    z1_bar := z2_bar
     z2_price := z_price
     z2_time := z_time
+    z2_bar := z_bar
 
 if direction > 0
     if high > z2_price
         z2_price := high
         z2_time := time
+        z2_bar := bar_index
         z_price := low
         z_time := time
+        z_bar := bar_index
     if low < z_price
         z_price := low
         z_time := time
+        z_bar := bar_index
 
 if direction < 0
     if low < z2_price
         z2_price := low
         z2_time := time
+        z2_bar := bar_index
         z_price := high
         z_time := time
+        z_bar := bar_index
     if high > z_price
         z_price := high
         z_time := time
+        z_bar := bar_index
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
 // Using z0 and z1 (previous two pivots, not the most recent two)
@@ -121,8 +134,8 @@ P0 = math.min(z0_price, z1_price)
 P1 = math.max(z0_price, z1_price)
 
 R = P1 - P0
-barsSpan = math.max(5, math.min(250, 500))
-x1 = bar_index - barsSpan
+// x1 is set to the older of the two pivots (z0 or z1)
+x1 = math.min(z0_bar, z1_bar)
 x2 = bar_index
 
 var line[] lines = array.new_line(array.size(levels))
@@ -163,30 +176,61 @@ for i = 0 to array.size(levels) - 1
     label.set_size(lb, fibLabelSize)
     label.set_color(lb, color.new(fibLabelBgColor, fibLabelBgTransparency))
 
-// ── Optional: Show ZigZag swing points ────────────────────────────────────────
-if showZigZagPoints and ta.change(direction)
-    var label pivotLabel = na
-    label.delete(pivotLabel[1])
+// ── Show ZigZag swing points (P0 and P1) ──────────────────────────────────────
+// Track swing types for z0 and z1
+var string z0_type = ""
+var string z1_type = ""
 
-    string pointType = ""
+if ta.change(direction)
+    // Store the swing type for the newly confirmed pivot (which becomes z1)
     var float lastPivot = z1_price[1]
 
     if direction[1] < 0
-        pointType := z2_price < lastPivot ? "LL" : "HL"
+        z0_type := z1_type  // Shift z1 type to z0
+        z1_type := z2_price[1] < lastPivot ? "LL" : "HL"
     else
-        pointType := z2_price > lastPivot ? "HH" : "LH"
+        z0_type := z1_type  // Shift z1 type to z0
+        z1_type := z2_price[1] > lastPivot ? "HH" : "LH"
 
-    // Position label above highs (HH, LH) and below lows (LL, HL)
-    labelStyle = direction[1] > 0 ? label.style_label_down : label.style_label_up
-    pivotColor = direction[1] < 0 ? bearColor : bullColor
+// Always show both pivot labels at z0 and z1 positions
+var label pivotLabel0 = na
+var label pivotLabel1 = na
 
-    pivotLabel := label.new(
-         bar_index[1], z2_price[1],
-         pointType,
-         xloc.bar_index,
-         yloc.price,
-         color.new(pivotColor, pivotBgTransparency),
-         labelStyle,
-         color.new(pivotColor, pivotLabelTransparency),
-         pivotLabelSize
-     )
+if showZigZagPoints
+    // Delete old labels
+    label.delete(pivotLabel0)
+    label.delete(pivotLabel1)
+
+    // Label for z0 (older pivot)
+    if z0_type != ""
+        isHigh0 = z0_type == "HH" or z0_type == "LH"
+        labelStyle0 = isHigh0 ? label.style_label_down : label.style_label_up
+        pivotColor0 = isHigh0 ? bullColor : bearColor
+
+        pivotLabel0 := label.new(
+             z0_bar, z0_price,
+             z0_type,
+             xloc.bar_index,
+             yloc.price,
+             color.new(pivotColor0, pivotBgTransparency),
+             labelStyle0,
+             color.new(pivotColor0, pivotLabelTransparency),
+             pivotLabelSize
+         )
+
+    // Label for z1 (newer pivot)
+    if z1_type != ""
+        isHigh1 = z1_type == "HH" or z1_type == "LH"
+        labelStyle1 = isHigh1 ? label.style_label_down : label.style_label_up
+        pivotColor1 = isHigh1 ? bullColor : bearColor
+
+        pivotLabel1 := label.new(
+             z1_bar, z1_price,
+             z1_type,
+             xloc.bar_index,
+             yloc.price,
+             color.new(pivotColor1, pivotBgTransparency),
+             labelStyle1,
+             color.new(pivotColor1, pivotLabelTransparency),
+             pivotLabelSize
+         )
