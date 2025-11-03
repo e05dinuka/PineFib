@@ -140,33 +140,38 @@ if direction < 0
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
 // Select pivots based on user input
-var float firstPivot = na
-var float secondPivot = na
-var int firstPivotBar = na
-var int secondPivotBar = na
+// P0 (0%) = first pivot in time (older)
+// P1 (100%) = second pivot in time (newer)
+var float olderPivot = na
+var float newerPivot = na
+var int olderPivotBar = na
+var int newerPivotBar = na
 
 if pivotSelection == "Most recent swing (z2 ↔ z1)"
-    firstPivot := z2_price
-    secondPivot := z1_price
-    firstPivotBar := z2_bar
-    secondPivotBar := z1_bar
+    olderPivot := z1_price
+    newerPivot := z2_price
+    olderPivotBar := z1_bar
+    newerPivotBar := z2_bar
 else if pivotSelection == "Previous swing (z1 ↔ z0)"
-    firstPivot := z1_price
-    secondPivot := z0_price
-    firstPivotBar := z1_bar
-    secondPivotBar := z0_bar
+    olderPivot := z0_price
+    newerPivot := z1_price
+    olderPivotBar := z0_bar
+    newerPivotBar := z1_bar
 else  // "Older swing (z0 ↔ z-1)"
-    firstPivot := z0_price
-    secondPivot := z_minus1_price
-    firstPivotBar := z0_bar
-    secondPivotBar := z_minus1_bar
+    olderPivot := z_minus1_price
+    newerPivot := z0_price
+    olderPivotBar := z_minus1_bar
+    newerPivotBar := z0_bar
 
-P0 = math.min(firstPivot, secondPivot)
-P1 = math.max(firstPivot, secondPivot)
+// P0 is the first pivot in time (where the swing starts)
+// P1 is the second pivot in time (where the swing ends)
+// This preserves directional flow: H→L or L→H
+P0 = olderPivot
+P1 = newerPivot
 
 R = P1 - P0
-// x1 is set to the older of the two selected pivots
-x1 = math.min(firstPivotBar, secondPivotBar)
+// x1 is set to the older pivot (start of the swing)
+x1 = olderPivotBar
 x2 = bar_index
 
 var line[] lines = array.new_line(array.size(levels))
@@ -187,7 +192,8 @@ for i = 0 to array.size(levels) - 1
 
     // Update line
     ln = array.get(lines, i)
-    isRetracement = price >= P0 and price <= P1
+    // Retracement levels are between 0% and 100% (lvl between 0 and 1)
+    isRetracement = lvl >= 0 and lvl <= 1
     lineWidth = isRetracement ? retracementLineWidth : fibLineWidth
 
     line.set_xy1(ln, x1, price)
