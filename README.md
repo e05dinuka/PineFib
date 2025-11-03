@@ -11,11 +11,13 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 
 ### Fibonacci Levels
 - Draws Fibonacci levels based on selected ZigZag pivot pairs (see Pivot Selection)
-- **P0 (0%)** = First pivot in time (where the swing starts)
-- **P1 (100%)** = Second pivot in time (where the swing ends)
-- This preserves directional flow:
-  - **High → Low swing**: P0 = High, P1 = Low
-  - **Low → High swing**: P0 = Low, P1 = High
+- **P0 (0%)** = Second pivot in time (where the swing ends)
+- **P1 (100%)** = First pivot in time (where the swing starts)
+- This creates standard Fibonacci retracement behavior:
+  - **High → Low swing**: 100% = High (start), 0% = Low (end)
+    - Retracements show bounce levels from the low
+  - **Low → High swing**: 100% = Low (start), 0% = High (end)
+    - Retracements show pullback levels from the high
 - Supports all φ-based levels including:
   - Retracements: 23.6%, 38.2%, 50%, 61.8%, 78.6%, 88.6%
   - Extensions: 123.6%, 127.2%, 138.2%, 161.8%, 261.8%, 361.8%, 423.6%

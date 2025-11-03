@@ -140,8 +140,8 @@ if direction < 0
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
 // Select pivots based on user input
-// P0 (0%) = first pivot in time (older)
-// P1 (100%) = second pivot in time (newer)
+// P0 (0%) = second pivot in time (newer, where swing ends)
+// P1 (100%) = first pivot in time (older, where swing starts)
 var float olderPivot = na
 var float newerPivot = na
 var int olderPivotBar = na
@@ -163,11 +163,13 @@ else  // "Older swing (z0 ↔ z-1)"
     olderPivotBar := z_minus1_bar
     newerPivotBar := z0_bar
 
-// P0 is the first pivot in time (where the swing starts)
-// P1 is the second pivot in time (where the swing ends)
-// This preserves directional flow: H→L or L→H
-P0 = olderPivot
-P1 = newerPivot
+// P0 (0%) is at the end of the swing (newer pivot)
+// P1 (100%) is at the start of the swing (older pivot)
+// This creates standard Fibonacci retracement from swing origin:
+// H→L swing: 100% = H (start), 0% = L (end)
+// L→H swing: 100% = L (start), 0% = H (end)
+P0 = newerPivot
+P1 = olderPivot
 
 R = P1 - P0
 // x1 is set to the older pivot (start of the swing)
