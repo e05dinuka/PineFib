@@ -5,6 +5,10 @@ indicator("Fibonacci φ Pack with ZigZag", overlay=true, max_lines_count=200, ma
 Depth = input.int(12, 'Depth', minval=1, step=1, group="ZigZag Config", tooltip="ZigZag depth parameter")
 Deviation = input.int(5, 'Deviation', minval=1, step=1, group="ZigZag Config", tooltip="ZigZag deviation parameter")
 Backstep = input.int(2, 'Backstep', minval=2, step=1, group="ZigZag Config", tooltip="ZigZag backstep parameter")
+pivotSelection = input.string("Previous swing (z1 ↔ z0)", "Pivot Selection",
+     options=["Most recent swing (z2 ↔ z1)", "Previous swing (z1 ↔ z0)", "Older swing (z0 ↔ z-1)"],
+     group="ZigZag Config",
+     tooltip="Select which pair of pivots to use for Fibonacci levels")
 showZigZagPoints = input.bool(true, "Show ZigZag Pivot Points", group="ZigZag Config")
 
 // ── Fibonacci Level Visibility ────────────────────────────────────────────────
@@ -81,6 +85,9 @@ direction = ta.barssince(not (hr > lr)) >= Backstep ? -1 : 1
 var float z_price = low
 var int z_time = time
 var int z_bar = bar_index
+var float z_minus1_price = low
+var int z_minus1_time = time
+var int z_minus1_bar = bar_index
 var float z0_price = low
 var int z0_time = time
 var int z0_bar = bar_index
@@ -92,6 +99,9 @@ var int z2_time = time
 var int z2_bar = bar_index
 
 if ta.change(direction)
+    z_minus1_price := z0_price
+    z_minus1_time := z0_time
+    z_minus1_bar := z0_bar
     z0_price := z1_price
     z0_time := z1_time
     z0_bar := z1_bar
@@ -129,13 +139,34 @@ if direction < 0
         z_bar := bar_index
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
-// Using z0 and z1 (previous two pivots, not the most recent two)
-P0 = math.min(z0_price, z1_price)
-P1 = math.max(z0_price, z1_price)
+// Select pivots based on user input
+var float firstPivot = na
+var float secondPivot = na
+var int firstPivotBar = na
+var int secondPivotBar = na
+
+if pivotSelection == "Most recent swing (z2 ↔ z1)"
+    firstPivot := z2_price
+    secondPivot := z1_price
+    firstPivotBar := z2_bar
+    secondPivotBar := z1_bar
+else if pivotSelection == "Previous swing (z1 ↔ z0)"
+    firstPivot := z1_price
+    secondPivot := z0_price
+    firstPivotBar := z1_bar
+    secondPivotBar := z0_bar
+else  // "Older swing (z0 ↔ z-1)"
+    firstPivot := z0_price
+    secondPivot := z_minus1_price
+    firstPivotBar := z0_bar
+    secondPivotBar := z_minus1_bar
+
+P0 = math.min(firstPivot, secondPivot)
+P1 = math.max(firstPivot, secondPivot)
 
 R = P1 - P0
-// x1 is set to the older of the two pivots (z0 or z1)
-x1 = math.min(z0_bar, z1_bar)
+// x1 is set to the older of the two selected pivots
+x1 = math.min(firstPivotBar, secondPivotBar)
 x2 = bar_index
 
 var line[] lines = array.new_line(array.size(levels))
@@ -177,60 +208,95 @@ for i = 0 to array.size(levels) - 1
     label.set_color(lb, color.new(fibLabelBgColor, fibLabelBgTransparency))
 
 // ── Show ZigZag swing points (P0 and P1) ──────────────────────────────────────
-// Track swing types for z0 and z1
+// Track swing types for all pivots
+var string z_minus1_type = ""
 var string z0_type = ""
 var string z1_type = ""
+var string z2_type = ""
 
 if ta.change(direction)
-    // Store the swing type for the newly confirmed pivot (which becomes z1)
+    // Store the swing type for the newly confirmed pivot (which becomes z2)
     var float lastPivot = z1_price[1]
 
-    if direction[1] < 0
-        z0_type := z1_type  // Shift z1 type to z0
-        z1_type := z2_price[1] < lastPivot ? "LL" : "HL"
-    else
-        z0_type := z1_type  // Shift z1 type to z0
-        z1_type := z2_price[1] > lastPivot ? "HH" : "LH"
+    // Shift all types
+    z_minus1_type := z0_type
+    z0_type := z1_type
+    z1_type := z2_type
 
-// Always show both pivot labels at z0 and z1 positions
-var label pivotLabel0 = na
-var label pivotLabel1 = na
+    if direction[1] < 0
+        z2_type := z2_price[1] < lastPivot ? "LL" : "HL"
+    else
+        z2_type := z2_price[1] > lastPivot ? "HH" : "LH"
+
+// Show both pivot labels for the selected pair
+var label pivotLabelFirst = na
+var label pivotLabelSecond = na
 
 if showZigZagPoints
     // Delete old labels
-    label.delete(pivotLabel0)
-    label.delete(pivotLabel1)
+    label.delete(pivotLabelFirst)
+    label.delete(pivotLabelSecond)
 
-    // Label for z0 (older pivot)
-    if z0_type != ""
-        isHigh0 = z0_type == "HH" or z0_type == "LH"
-        labelStyle0 = isHigh0 ? label.style_label_down : label.style_label_up
-        pivotColor0 = isHigh0 ? bullColor : bearColor
+    // Determine which labels to show based on selection
+    float labelPrice1 = na
+    float labelPrice2 = na
+    int labelBar1 = na
+    int labelBar2 = na
+    string labelType1 = ""
+    string labelType2 = ""
 
-        pivotLabel0 := label.new(
-             z0_bar, z0_price,
-             z0_type,
-             xloc.bar_index,
-             yloc.price,
-             color.new(pivotColor0, pivotBgTransparency),
-             labelStyle0,
-             color.new(color.white, pivotLabelTransparency),
-             pivotLabelSize
-         )
+    if pivotSelection == "Most recent swing (z2 ↔ z1)"
+        labelPrice1 := z2_price
+        labelPrice2 := z1_price
+        labelBar1 := z2_bar
+        labelBar2 := z1_bar
+        labelType1 := z2_type
+        labelType2 := z1_type
+    else if pivotSelection == "Previous swing (z1 ↔ z0)"
+        labelPrice1 := z1_price
+        labelPrice2 := z0_price
+        labelBar1 := z1_bar
+        labelBar2 := z0_bar
+        labelType1 := z1_type
+        labelType2 := z0_type
+    else  // "Older swing (z0 ↔ z-1)"
+        labelPrice1 := z0_price
+        labelPrice2 := z_minus1_price
+        labelBar1 := z0_bar
+        labelBar2 := z_minus1_bar
+        labelType1 := z0_type
+        labelType2 := z_minus1_type
 
-    // Label for z1 (newer pivot)
-    if z1_type != ""
-        isHigh1 = z1_type == "HH" or z1_type == "LH"
+    // Label for first pivot
+    if labelType1 != ""
+        isHigh1 = labelType1 == "HH" or labelType1 == "LH"
         labelStyle1 = isHigh1 ? label.style_label_down : label.style_label_up
         pivotColor1 = isHigh1 ? bullColor : bearColor
 
-        pivotLabel1 := label.new(
-             z1_bar, z1_price,
-             z1_type,
+        pivotLabelFirst := label.new(
+             labelBar1, labelPrice1,
+             labelType1,
              xloc.bar_index,
              yloc.price,
              color.new(pivotColor1, pivotBgTransparency),
              labelStyle1,
+             color.new(color.white, pivotLabelTransparency),
+             pivotLabelSize
+         )
+
+    // Label for second pivot
+    if labelType2 != ""
+        isHigh2 = labelType2 == "HH" or labelType2 == "LH"
+        labelStyle2 = isHigh2 ? label.style_label_down : label.style_label_up
+        pivotColor2 = isHigh2 ? bullColor : bearColor
+
+        pivotLabelSecond := label.new(
+             labelBar2, labelPrice2,
+             labelType2,
+             xloc.bar_index,
+             yloc.price,
+             color.new(pivotColor2, pivotBgTransparency),
+             labelStyle2,
              color.new(color.white, pivotLabelTransparency),
              pivotLabelSize
          )

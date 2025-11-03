@@ -23,7 +23,11 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - `Depth` (default: 12) - Lookback period for swing detection
 - `Deviation` (default: 5) - Minimum price movement in ticks
 - `Backstep` (default: 2) - Minimum bars between pivots
-- `Show ZigZag Pivot Points` (default: true) - Display HH/HL/LH/LL labels
+- `Pivot Selection` (default: "Previous swing") - Choose which pivot pair to use:
+  - **Most recent swing (z2 ↔ z1)** - Uses the last confirmed swing
+  - **Previous swing (z1 ↔ z0)** - Uses one swing back (more stable)
+  - **Older swing (z0 ↔ z-1)** - Uses two swings back (most stable)
+- `Show ZigZag Pivot Points` (default: true) - Display HH/HL/LH/LL labels for selected pivots
 
 **Fibonacci Level Visibility:**
 - Toggle retracements (0-100%)
@@ -59,15 +63,20 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 
 1. **ZigZag Detection**: The indicator continuously monitors price swings using the embedded ZigZag algorithm
 2. **Pivot Identification**: When a new swing is confirmed, it identifies the pattern type (HH, HL, LH, LL)
-3. **Fibonacci Drawing**: Fibonacci levels are drawn between the **previous** two confirmed pivot points (z0 and z1), not the most recent swing
-4. **Dynamic Updates**: As new swings form, the Fibonacci levels shift to the previous completed swing
+3. **Pivot Selection**: Choose which pair of pivots to use for Fibonacci calculation:
+   - Most recent, previous, or older swing
+   - More recent = more responsive but may repaint
+   - Older = more stable and less repainting
+4. **Fibonacci Drawing**: Fibonacci levels are drawn between the selected two pivot points
+5. **Dynamic Updates**: As new swings form, the Fibonacci levels update based on your pivot selection
 
 ## Differences from Original
 
 - **No manual mode**: All swing detection is automatic via ZigZag
 - **No lookback setting**: Uses ZigZag parameters instead
 - **Embedded logic**: ZigZag algorithm is integrated directly (no library dependency)
-- **Live pivot tracking**: Shows the most recent swing pattern type
+- **Pivot selection**: User can choose which swing to use (most recent, previous, or older)
+- **Live pivot tracking**: Shows the selected pivot pair with swing pattern types (HH, HL, LH, LL)
 
 ## Usage
 
