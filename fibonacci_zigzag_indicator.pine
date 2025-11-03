@@ -5,10 +5,8 @@ indicator("Fibonacci φ Pack with ZigZag", overlay=true, max_lines_count=200, ma
 Depth = input.int(12, 'Depth', minval=1, step=1, group="ZigZag Config", tooltip="ZigZag depth parameter")
 Deviation = input.int(5, 'Deviation', minval=1, step=1, group="ZigZag Config", tooltip="ZigZag deviation parameter")
 Backstep = input.int(2, 'Backstep', minval=2, step=1, group="ZigZag Config", tooltip="ZigZag backstep parameter")
-pivotIndex1 = input.int(1, "First Pivot (0=most recent)", minval=0, maxval=20, group="ZigZag Config",
-     tooltip="Select first pivot: 0=most recent, 1=previous, 2=older, etc.")
-pivotIndex2 = input.int(0, "Second Pivot (0=most recent)", minval=0, maxval=20, group="ZigZag Config",
-     tooltip="Select second pivot: 0=most recent, 1=previous, 2=older, etc.")
+swingIndex = input.int(0, "Swing Selection (0=most recent)", minval=0, maxval=19, group="ZigZag Config",
+     tooltip="Select which complete zigzag swing to use:\n0 = Most recent swing\n1 = Previous swing\n2 = Older swing, etc.")
 showZigZagPoints = input.bool(true, "Show ZigZag Pivot Points", group="ZigZag Config")
 
 // ── Fibonacci Level Visibility ────────────────────────────────────────────────
@@ -135,20 +133,15 @@ else
         z_bar := bar_index
 
 // ── Anchors P0 (0%) and P1 (100%) from ZigZag ─────────────────────────────────
-// Select pivots based on numeric indices
-// pivotIndex 0 = most recent confirmed pivot
-// pivotIndex 1 = previous pivot, etc.
+// Select a complete swing using swingIndex
+// swingIndex 0 = most recent swing (between pivot[0] and pivot[1])
+// swingIndex 1 = previous swing (between pivot[1] and pivot[2])
+// swingIndex N = swing between pivot[N] and pivot[N+1]
 
-pivot1Price = array.get(pivotPrices, pivotIndex1)
-pivot1Bar = array.get(pivotBars, pivotIndex1)
-pivot2Price = array.get(pivotPrices, pivotIndex2)
-pivot2Bar = array.get(pivotBars, pivotIndex2)
-
-// Determine which pivot is older (came first in time)
-olderPivot = pivot1Bar < pivot2Bar ? pivot1Price : pivot2Price
-newerPivot = pivot1Bar < pivot2Bar ? pivot2Price : pivot1Price
-olderPivotBar = math.min(pivot1Bar, pivot2Bar)
-newerPivotBar = math.max(pivot1Bar, pivot2Bar)
+newerPivot = array.get(pivotPrices, swingIndex)
+newerPivotBar = array.get(pivotBars, swingIndex)
+olderPivot = array.get(pivotPrices, swingIndex + 1)
+olderPivotBar = array.get(pivotBars, swingIndex + 1)
 
 // P0 (0%) is at the end of the swing (newer pivot)
 // P1 (100%) is at the start of the swing (older pivot)
@@ -212,14 +205,14 @@ if showZigZagPoints
     label.delete(pivotLabelFirst)
     label.delete(pivotLabelSecond)
 
-    // Get labels for the selected pivots
-    labelPrice1 = array.get(pivotPrices, pivotIndex1)
-    labelBar1 = array.get(pivotBars, pivotIndex1)
-    labelType1 = array.get(pivotTypes, pivotIndex1)
+    // Get labels for the selected swing (two consecutive pivots)
+    labelPrice1 = array.get(pivotPrices, swingIndex)
+    labelBar1 = array.get(pivotBars, swingIndex)
+    labelType1 = array.get(pivotTypes, swingIndex)
 
-    labelPrice2 = array.get(pivotPrices, pivotIndex2)
-    labelBar2 = array.get(pivotBars, pivotIndex2)
-    labelType2 = array.get(pivotTypes, pivotIndex2)
+    labelPrice2 = array.get(pivotPrices, swingIndex + 1)
+    labelBar2 = array.get(pivotBars, swingIndex + 1)
+    labelType2 = array.get(pivotTypes, swingIndex + 1)
 
     // Label for first pivot
     if not na(labelPrice1) and labelType1 != ""

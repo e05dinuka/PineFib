@@ -29,19 +29,18 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - `Depth` (default: 12) - Lookback period for swing detection
 - `Deviation` (default: 5) - Minimum price movement in ticks
 - `Backstep` (default: 2) - Minimum bars between pivots
-- `First Pivot` (default: 1) - Select first pivot by index:
-  - **0** = Most recent confirmed pivot
-  - **1** = Previous pivot
-  - **2** = Two pivots back
-  - **3+** = Any older pivot (up to 20 pivots back)
-- `Second Pivot` (default: 0) - Select second pivot by index (same system as first)
-- `Show ZigZag Pivot Points` (default: true) - Display HH/HL/LH/LL labels for selected pivots
+- `Swing Selection` (default: 0) - Select which complete zigzag swing to use:
+  - **0** = Most recent complete swing (HH-HL, HH-LL, LH-LL, LH-HL, HL-HH, HL-LH, LL-HH, or LL-LH)
+  - **1** = Previous complete swing
+  - **2** = Two swings back
+  - **3+** = Any older swing (up to 19 swings back)
+- `Show ZigZag Pivot Points` (default: true) - Display HH/HL/LH/LL labels at both ends of selected swing
 
-**Pivot Selection Examples:**
-- First=1, Second=0 → Draw between previous and most recent pivot (default)
-- First=2, Second=1 → Draw between two older pivots
-- First=5, Second=3 → Draw between any two pivots in history
-- First=0, Second=0 → Draw from most recent to itself (not useful, will show error)
+**Swing Selection Examples:**
+- 0 → Most recent complete zigzag swing (default)
+- 1 → Previous complete zigzag swing
+- 5 → 5 swings back in history
+- 10 → 10 swings back in history
 
 **Fibonacci Level Visibility:**
 - Toggle retracements (0-100%)
@@ -78,13 +77,14 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 1. **ZigZag Detection**: The indicator continuously monitors price swings using the embedded ZigZag algorithm
 2. **Pivot History**: Stores up to 21 confirmed pivot points in memory (index 0=most recent, 1=previous, etc.)
 3. **Pivot Identification**: When a new swing is confirmed, it identifies the pattern type (HH, HL, LH, LL) and stores it
-4. **Numeric Pivot Selection**: Select any two pivots using numeric indices:
-   - Lower index = more recent pivot
-   - Higher index = older pivot
-   - Flexible selection allows analyzing any swing in history
-5. **Fibonacci Drawing**: Fibonacci levels are drawn between the two selected pivot points
-   - P0 (0%) placed at the newer (end) of the two pivots
-   - P1 (100%) placed at the older (start) of the two pivots
+4. **Swing Selection**: Select a complete zigzag swing using a single index:
+   - **Swing 0** = Most recent complete swing (between pivot[0] and pivot[1])
+   - **Swing 1** = Previous complete swing (between pivot[1] and pivot[2])
+   - **Swing N** = Older swing (between pivot[N] and pivot[N+1])
+   - Each swing is a line between two consecutive pivots forming a pattern like HH-HL, LH-LL, etc.
+5. **Fibonacci Drawing**: Fibonacci levels are drawn for the selected complete swing
+   - P0 (0%) placed at the newer pivot (where swing ends)
+   - P1 (100%) placed at the older pivot (where swing starts)
 6. **Dynamic Updates**: As new swings form, pivot history shifts and Fibonacci levels update accordingly
 
 ## Differences from Original
@@ -92,22 +92,23 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - **No manual mode**: All swing detection is automatic via ZigZag
 - **No lookback setting**: Uses ZigZag parameters instead
 - **Embedded logic**: ZigZag algorithm is integrated directly (no library dependency)
-- **Numeric pivot selection**: User can select any two pivots from history (0-20 pivots back)
-- **Flexible pairing**: Not limited to adjacent swing pairs - can analyze any two pivots
+- **Single swing selection**: User selects a complete zigzag swing by index (0-19 swings back)
+- **Natural swing pairing**: Always draws between two consecutive pivots forming a complete swing
 - **Pivot history tracking**: Stores up to 21 pivots with their types (HH, HL, LH, LL)
-- **Live pivot labeling**: Shows the selected pivot pair with their swing pattern types
+- **Complete swing analysis**: Each selection represents a full zigzag line (HH-HL, LH-LL, etc.)
+- **Live pivot labeling**: Shows both ends of the selected swing with their pattern types
 
 ## Usage
 
 1. Add the indicator to your TradingView chart
 2. Adjust ZigZag parameters (Depth, Deviation, Backstep) to match your trading timeframe
-3. Select which pivots to use:
-   - **First Pivot**: Enter index (0=most recent, 1=previous, 2=older, etc.)
-   - **Second Pivot**: Enter index (0=most recent, 1=previous, 2=older, etc.)
-   - Tip: Start with defaults (First=1, Second=0) for previous to most recent swing
+3. Select which complete swing to use:
+   - **Swing Selection**: Enter 0 for most recent, 1 for previous, 2 for older, etc.
+   - Default is 0 (most recent complete zigzag swing)
+   - Each swing is a complete line between two consecutive pivots
 4. Toggle which Fibonacci levels you want to display
 5. Customize colors, line styles, and label sizes to match your chart theme
-6. The indicator will automatically draw levels between your selected pivot points
+6. The indicator will automatically draw levels for your selected complete swing
 
 ## Credits
 
