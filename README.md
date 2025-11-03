@@ -29,11 +29,19 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 - `Depth` (default: 12) - Lookback period for swing detection
 - `Deviation` (default: 5) - Minimum price movement in ticks
 - `Backstep` (default: 2) - Minimum bars between pivots
-- `Pivot Selection` (default: "Previous swing") - Choose which pivot pair to use:
-  - **Most recent swing (z2 ↔ z1)** - Uses the last confirmed swing
-  - **Previous swing (z1 ↔ z0)** - Uses one swing back (more stable)
-  - **Older swing (z0 ↔ z-1)** - Uses two swings back (most stable)
+- `First Pivot` (default: 1) - Select first pivot by index:
+  - **0** = Most recent confirmed pivot
+  - **1** = Previous pivot
+  - **2** = Two pivots back
+  - **3+** = Any older pivot (up to 20 pivots back)
+- `Second Pivot` (default: 0) - Select second pivot by index (same system as first)
 - `Show ZigZag Pivot Points` (default: true) - Display HH/HL/LH/LL labels for selected pivots
+
+**Pivot Selection Examples:**
+- First=1, Second=0 → Draw between previous and most recent pivot (default)
+- First=2, Second=1 → Draw between two older pivots
+- First=5, Second=3 → Draw between any two pivots in history
+- First=0, Second=0 → Draw from most recent to itself (not useful, will show error)
 
 **Fibonacci Level Visibility:**
 - Toggle retracements (0-100%)
@@ -68,28 +76,38 @@ This Pine Script indicator combines Fibonacci retracement/extension levels with 
 ## How It Works
 
 1. **ZigZag Detection**: The indicator continuously monitors price swings using the embedded ZigZag algorithm
-2. **Pivot Identification**: When a new swing is confirmed, it identifies the pattern type (HH, HL, LH, LL)
-3. **Pivot Selection**: Choose which pair of pivots to use for Fibonacci calculation:
-   - Most recent, previous, or older swing
-   - More recent = more responsive but may repaint
-   - Older = more stable and less repainting
-4. **Fibonacci Drawing**: Fibonacci levels are drawn between the selected two pivot points
-5. **Dynamic Updates**: As new swings form, the Fibonacci levels update based on your pivot selection
+2. **Pivot History**: Stores up to 21 confirmed pivot points in memory (index 0=most recent, 1=previous, etc.)
+3. **Pivot Identification**: When a new swing is confirmed, it identifies the pattern type (HH, HL, LH, LL) and stores it
+4. **Numeric Pivot Selection**: Select any two pivots using numeric indices:
+   - Lower index = more recent pivot
+   - Higher index = older pivot
+   - Flexible selection allows analyzing any swing in history
+5. **Fibonacci Drawing**: Fibonacci levels are drawn between the two selected pivot points
+   - P0 (0%) placed at the newer (end) of the two pivots
+   - P1 (100%) placed at the older (start) of the two pivots
+6. **Dynamic Updates**: As new swings form, pivot history shifts and Fibonacci levels update accordingly
 
 ## Differences from Original
 
 - **No manual mode**: All swing detection is automatic via ZigZag
 - **No lookback setting**: Uses ZigZag parameters instead
 - **Embedded logic**: ZigZag algorithm is integrated directly (no library dependency)
-- **Pivot selection**: User can choose which swing to use (most recent, previous, or older)
-- **Live pivot tracking**: Shows the selected pivot pair with swing pattern types (HH, HL, LH, LL)
+- **Numeric pivot selection**: User can select any two pivots from history (0-20 pivots back)
+- **Flexible pairing**: Not limited to adjacent swing pairs - can analyze any two pivots
+- **Pivot history tracking**: Stores up to 21 pivots with their types (HH, HL, LH, LL)
+- **Live pivot labeling**: Shows the selected pivot pair with their swing pattern types
 
 ## Usage
 
 1. Add the indicator to your TradingView chart
 2. Adjust ZigZag parameters (Depth, Deviation, Backstep) to match your trading timeframe
-3. Toggle which Fibonacci levels you want to display
-4. The indicator will automatically draw levels between recent swing points
+3. Select which pivots to use:
+   - **First Pivot**: Enter index (0=most recent, 1=previous, 2=older, etc.)
+   - **Second Pivot**: Enter index (0=most recent, 1=previous, 2=older, etc.)
+   - Tip: Start with defaults (First=1, Second=0) for previous to most recent swing
+4. Toggle which Fibonacci levels you want to display
+5. Customize colors, line styles, and label sizes to match your chart theme
+6. The indicator will automatically draw levels between your selected pivot points
 
 ## Credits
 
